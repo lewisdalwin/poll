@@ -10,10 +10,13 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/lewisdalwin/poll/internal/models"
 )
 
 // Share data across our handlers
-type application struct {}
+type application struct {
+	questions *models.QuestionModel
+}
 
 func main() {
 	// configure our server
@@ -21,18 +24,21 @@ func main() {
 	dsn := flag.String("dsn", os.Getenv("POLL_DB_DSN"), "PostgreSQL DSN (Data Source Name)")
 	flag.Parse()
 
-	// share data across our handlers
-	app := &application{}
 	// get a database connection pool
 	db, err := openDB(*dsn)
 	if err != nil {
 		log.Print(err)
 		return
 	}
+
+	// share data across our handlers
+	app := &application{
+		questions: &models.QuestionModel{DB: db},
+	}
 	// cleanup the connection pool
 	defer db.Close()
 	// acquired a database connection pool
-	log.Print("database connection pool established")
+	log.Println("database connection pool established")
 	// create and start a custom web server
 	log.Printf("starting server on %s", *addr)
 	srv := &http.Server{
