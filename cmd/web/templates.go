@@ -11,7 +11,7 @@ import (
 // that we do not have to go to disk every time
 var cache = map[string]*template.Template{}
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
+func RenderTemplate(w http.ResponseWriter, tmpl string, data *templateData) {
 	// Check if the cache has the template for the passed in
 	// template string. If it does not, then we call the 
 	// createTemplateCache() function to parse the file and
@@ -27,7 +27,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 	// The template is in the cache, so read it and
 	// execute it
 	ts := cache[tmpl]
-	err := ts.Execute(w, nil)
+	err := ts.Execute(w, data)
+
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, "Internal Server Error", 500)
@@ -35,8 +36,8 @@ func RenderTemplate(w http.ResponseWriter, tmpl string) {
 }
 
 // The createTemplateCache() function accepts a string
-// representing a templape. The template is then parsed
-// and place into a template cache. An error is return
+// representing a template. The template is then parsed
+// and place into a template cache. An error is returned
 func createTemplateCache(tmpl string) error {
 	templates := []string{
 		fmt.Sprintf("./ui/html/%s", tmpl),
